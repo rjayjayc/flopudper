@@ -1,13 +1,12 @@
-/* Names: Robert Clarke, Corinne, Derrick
+//* Names: Robert Clarke, Corinne, Derrick
 
-CSU ids: 2565537, () , ()
+/*CSU ids: 2565537, () , ()
 
-CIS 340: Project #4
+CIS 340: Project #4 
 
 Description: Make udp client server aplication 
  * udpserver.c - A simple UDP echo server 
- * usage: udpserver <port>
-*/
+ * usage: udpserver <port> */
 
 
 #include <stdio.h>
@@ -19,6 +18,7 @@ Description: Make udp client server aplication
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <math.h>
 
 #define BUFSIZE 1024
 #define PORT 5555
@@ -32,23 +32,27 @@ void error(char *msg) {
 
 int main(int argc, char **argv) {
     
-    int ssockfd, portno, ccheck, r,  n;
+    int sockfd, portno, ccheck, n;
     int serverlen;
     struct sockaddr_in serveraddr; //define in socket.h
     struct hostent *server;
     char *hostname;
     char buf[BUFSIZE];
-
+    char *input;
+    size_t buffer;
+    buffer = BUFSIZE;
+    	
 	    struct {
 	char	head;
 	u_long	body;
 	char	tail;
 	int cli_id;
 	int ser_id;
+	char buffer[BUFSIZE];
     } msg;
 
 
-//Generate random key number number 
+
 
     /* check command line arguments */
     if (argc != 3) {
@@ -59,8 +63,8 @@ int main(int argc, char **argv) {
     portno = atoi(argv[2]); // portnumber
 
     /* socket: create the socket */
-    ssockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (ssockfd < 0) 
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) 
         error("ERROR opening socket");
 
     /* gethostbyname: get the server's DNS entry */
@@ -77,53 +81,46 @@ int main(int argc, char **argv) {
 	  (char *)&serveraddr.sin_addr.s_addr, server->h_length);
     serveraddr.sin_port = htons(portno);
 
-/* Generates random id numbers*/
 srand(time(NULL)); 
 msg.cli_id = rand();
 msg.ser_id = rand();
 
+  /*    input the command to send to the server    */
 
 
 
-    /* get a message from the user
-    bzero(buf, BUFSIZE);
-    printf("Please enter msg: ");
-    fgets(buf, BUFSIZE, stdin); */
-	
-// strcpy(buf , " Testing ");
+
+input = (char *)malloc(sizeof(char) * buffer);
+//    bzero(buf, BUFSIZE);
+printf("Please enter msg: ");
+getline(&input, &buffer, stdin);
+sprintf(msg.buffer, "%s", input); 
+
 
     /* send the message to the server */
-    
-	serverlen = sizeof(serveraddr);
+    serverlen = sizeof(serveraddr);
 
-   n = sendto(ssockfd, buf, sizeof(buf), 0, (struct sockaddr *)&serveraddr, (socklen_t)serverlen);
+   n = sendto(sockfd, &msg, sizeof(msg), 0, (struct sockaddr *)&serveraddr, (socklen_t)serverlen);
 
     if (n < 0) 
-
       error("ERROR in sendto ");
     
     /* print the server's reply */
-
-    r = recvfrom(sockfd, &buf, sizeof(buf), 0, (struct sockaddr *)&serveraddr, (socklen_t *)&serverlen);
-
-printf("%d",n);
-printf(" Data recieved :: -> %s\n", msg);
+    n = recvfrom(sockfd, &msg, sizeof(msg), 0, (struct sockaddr *)&serveraddr, (socklen_t *)&serverlen);
+    
 
 if (n < 0) {
-
       error("ERROR in recvfrom");
-
-    printf("Message from server: %s", msg);
+    printf("Message from server: %s", msg.buffer);
 }
 
-if (n != 0 ){
-printf(" Id recieved !");
-}
+printf(" Data recieved :: -> %s\n", msg.buffer);
 /*if (ccheck < 0){
       error("ERROR in recvfrom");
     printf("Message from server: %d", crandom);
 }*/
     
+
 
 return 0;
 }
