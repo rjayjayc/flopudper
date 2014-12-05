@@ -33,7 +33,7 @@
 int
 main()
 {
-    int	csocket_fd, cc, newsocket_fd, clientsize;
+    int	csocket_fd, cc, clientsize;
     struct sockaddr_in	s_in, clientaddr;
     void printsin();    
 
@@ -43,7 +43,8 @@ main()
 	char	tail;
 	int cli_id;
 	int ser_id;
-    } msg;
+	char buffer[BUFSIZE];
+    } msg, msg_out;
 
 
 
@@ -87,6 +88,7 @@ csocket_fd = socket (AF_INET, SOCK_DGRAM, 0);
 
 //
 
+strcpy(buf , "haaaa ");
 
 listen(csocket_fd, 5);  
 
@@ -98,52 +100,37 @@ puts("Waiting for Connection...........\n");
 
 cc = recvfrom(csocket_fd,&msg ,sizeof(msg),0,(struct sockaddr *)&clientaddr,&clientsize);
 	
-         if (cc < 0){
-	    perror(" Error orginating from Server-> :recvfrom() ");
-	}
-	printsin( &clientaddr, " Server : ", "Information from: Client");
+         if (cc < 0) {
+	    perror(" Error Server-> :recvfrom");
+	 }
+	    
+	printsin( &clientaddr, " Server : ", "Packet from: Client");
+	printf(" Id numbers recieved -> ::%d,%d,%s\n", msg.cli_id, msg.ser_id, msg.buffer);
 	
-	printf(" Client id # -> :: %d\n", msg.cli_id);
-	printf(" Server id # -> :: %d ", msg.ser_id);
 
-
-
-int clientid = msg.cli_id;
-int serverid = msg.ser_id;
+//int clientid = msg.cli_id;
+//int serverid = msg.ser_id;
 
 
 int s;
 
-s = sendto(csocket_fd, msg, sizeof(msg), 0, (struct sockaddr *)&clientaddr, clientsize);
+s = sendto(csocket_fd, &msg, sizeof(msg), 0, (struct sockaddr *)&clientaddr, clientsize);
 
-if (s < 0){
-perror(" Error orginating from Server-> :sendto() ");
-}
 	fflush(stdout);
-    }// End of for loop
+  
+    } //end of for loop
 
     return(0);
 }
 
-void
+void 
 printsin( sin, m1, m2 )
 struct sockaddr_in *sin;
 char *m1, *m2;
 {
 
     printf ("%s %s:\n", m1, m2);
-    printf ("Family %d, addr %s, port %d\n", sin -> sin_family,
+    printf ("  family %d, addr %s, port %d\n", sin -> sin_family,
 	    inet_ntoa(sin -> sin_addr), ntohs((unsigned short)(sin -> sin_port)));
 }
-
-/*void
-printids( sin, m1, m2 )
-struct msg *sin;
-int m1, m2;
-{
-
-    printf ("%d %d:\n", m1, m2);
-    printf ("  family %d, client id %d, server id %d\n", sin -> msg,
-	    inet_ntoa(sin -> sin_addr), ntohs((unsigned short)(sin -> sin_port)));
-}*/
 
